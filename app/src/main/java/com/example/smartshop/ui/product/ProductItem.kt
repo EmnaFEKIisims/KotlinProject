@@ -141,7 +141,8 @@ fun ProductItem(
             ) {
                 // Edit Icon Button
                 IconButton(
-                    onClick = { onEdit(product) },
+                    onClick = { onEdit(product)
+                              },
                     modifier = Modifier.size(40.dp)
                 ) {
                     Box(

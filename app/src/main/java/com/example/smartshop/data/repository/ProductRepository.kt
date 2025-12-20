@@ -119,6 +119,10 @@ class ProductRepository(private val productDao: ProductDao) {
     }
 
 
+    suspend fun getProductByFirebaseId(firebaseId: String?): Product? {
+        if (firebaseId == null) return null
+        return productDao.getProductByFirebaseId(firebaseId)
+    }
 
 
 
