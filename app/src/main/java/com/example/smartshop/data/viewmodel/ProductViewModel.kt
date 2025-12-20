@@ -6,6 +6,7 @@ import com.example.smartshop.data.local.entity.Product
 import com.example.smartshop.data.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import android.util.Log
 import com.google.firebase.firestore.QuerySnapshot
 
@@ -39,4 +40,19 @@ class ProductViewModel(
             repository.deleteProduct(product)
         }
     }
+
+    fun updateProduct(product: Product) {
+        viewModelScope.launch {
+            repository.updateProduct(product)
+        }
+    }
+    fun getProductByFirebaseId(firebaseId: String): Product? {
+        // This is a suspend function in Room
+        var product: Product? = null
+        runBlocking {
+            product = repository.getProductByFirebaseId(firebaseId)
+        }
+        return product
+    }
+
 }

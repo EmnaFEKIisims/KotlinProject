@@ -213,7 +213,10 @@ fun ProductListScreen(navController: NavHostController) { // Add navController p
                                     },
                                     onEdit = {
                                         // Navigate to edit product screen
-                                        navController.navigate("${Routes.EDIT_PRODUCT}/${product.id}")
+                                        navController.navigate(Routes.UPDATE_PRODUCT.replace("{firebaseId}", product.firebaseId ?: ""))
+
+
+
                                     }
                                 )
                             }

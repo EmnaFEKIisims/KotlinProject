@@ -21,4 +21,7 @@ interface ProductDao {
 
     @Query("SELECT * FROM products")
     fun getAllProducts(): Flow<List<Product>>
+
+    @Query("SELECT * FROM products WHERE firebaseId = :firebaseId LIMIT 1")
+    suspend fun getProductByFirebaseId(firebaseId: String?): Product?
 }

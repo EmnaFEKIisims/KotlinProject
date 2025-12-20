@@ -7,5 +7,6 @@ object Routes {
     const val PRODUCT_LIST = "product_list"
 
     const val ADD_PRODUCT = "add_product"
-    const val EDIT_PRODUCT = "edit_product/{productId}"
+
+    const val UPDATE_PRODUCT = "update_product/{firebaseId}"
 }
