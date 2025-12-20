@@ -1,5 +1,6 @@
 package com.example.smartshop.data.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.smartshop.data.local.entity.User
@@ -10,16 +11,13 @@ class AuthViewModel(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    fun signIn(
-        email: String,
-        password: String,
-        onResult: (Boolean) -> Unit
-    ) {
+    fun signIn(email: String, password: String, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
-            val success = userRepository.signIn(email, password)
-            onResult(success)
+            val (success, errorMsg) = userRepository.signIn(email, password)
+            onResult(success, errorMsg)
         }
     }
+
 
     fun signUp(
         email: String,
@@ -32,4 +30,25 @@ class AuthViewModel(
             onResult(success)
         }
     }
+
+    fun logout(onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                userRepository.logout()
+                onResult(true)
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Logout failed: ${e.message}", e)
+                onResult(false)
+            }
+        }
+    }
+
+    fun getCurrentUser(onResult: (User?) -> Unit) {
+        viewModelScope.launch {
+            val user = userRepository.getCachedUser()
+            onResult(user)
+        }
+    }
+
+
 }

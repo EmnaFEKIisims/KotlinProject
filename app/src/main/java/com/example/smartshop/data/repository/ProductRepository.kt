@@ -27,7 +27,8 @@ class ProductRepository(private val productDao: ProductDao) {
             val productMap = hashMapOf(
                 "name" to product.name,
                 "quantity" to product.quantity,
-                "price" to product.price
+                "price" to product.price,
+                "imageURL" to product.imageURL,
             )
             val docRef = collection.add(productMap).await()
 
@@ -50,7 +51,8 @@ class ProductRepository(private val productDao: ProductDao) {
                 val productMap = hashMapOf(
                     "name" to product.name,
                     "quantity" to product.quantity,
-                    "price" to product.price
+                    "price" to product.price ,
+                    "imageURL" to product.imageURL
                 )
                 collection.document(id).set(productMap).await()
             }
@@ -79,25 +81,39 @@ class ProductRepository(private val productDao: ProductDao) {
 
     // Real-time sync from Firebase to Room
     fun listenToFirebaseUpdates() {
+        Log.d("FIREBASE", "🔥 listenToFirebaseUpdates STARTED")
         collection.addSnapshotListener { snapshot, error ->
-            if (error != null || snapshot == null) return@addSnapshotListener
+
+            if (error != null) {
+                Log.e("FIREBASE", "Listener error", error)
+                return@addSnapshotListener
+            }
+
+            if (snapshot == null) {
+                Log.e("FIREBASE", "Snapshot is null")
+                return@addSnapshotListener
+            }
+
+            Log.d("FIREBASE", "Documents count = ${snapshot.documents.size}")
 
             val products = snapshot.documents.map { doc ->
                 Product(
-                    id = 0, // Room will generate a local ID
+                    id = 0,
                     name = doc.getString("name") ?: "",
                     quantity = (doc.getLong("quantity") ?: 0L).toInt(),
                     price = doc.getDouble("price") ?: 0.0,
+                    imageURL = doc.getString("imageURL") ?: "",
                     firebaseId = doc.id
                 )
             }
 
-            // Update Room with Firebase data
             CoroutineScope(Dispatchers.IO).launch {
                 productDao.insertProducts(products)
+                Log.d("ROOM", "Inserted ${products.size} products into Room")
             }
         }
     }
+
 
     // Calculate total number of products
     fun getTotalProducts(): Flow<Int> =

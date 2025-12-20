@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.smartshop.ui.auth.SignInScreen
 import com.example.smartshop.ui.auth.SignUpScreen
+import com.example.smartshop.ui.product.ProductListScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -20,6 +21,10 @@ fun NavGraph(navController: NavHostController) {
         composable(Routes.SIGN_UP) {
             SignUpScreen(navController)
 
+        }
+
+        composable(Routes.PRODUCT_LIST) {
+            ProductListScreen(navController)
         }
     }
 }

@@ -9,7 +9,7 @@ import com.example.smartshop.data.local.dao.UserDao
 import com.example.smartshop.data.local.dao.ProductDao
 import com.example.smartshop.data.local.entity.Product
 
-@Database(entities = [Product::class, User::class], version = 1)
+@Database(entities = [Product::class, User::class], version = 3)
 abstract class SmartShopDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao
     abstract fun userDao(): UserDao
@@ -24,7 +24,8 @@ abstract class SmartShopDatabase : RoomDatabase() {
                     context.applicationContext,
                     SmartShopDatabase::class.java,
                     "smartshop_database"
-                ).build()
+                ).fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

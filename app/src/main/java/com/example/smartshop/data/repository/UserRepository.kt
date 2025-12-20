@@ -53,41 +53,33 @@ class UserRepository(
     }
 
     // 🔐 SIGN IN
-    suspend fun signIn(
-        email: String,
-        password: String
-    ): Boolean {
+    suspend fun signIn(email: String, password: String): Pair<Boolean, String?> {
         return try {
-            // 1️⃣ Firebase Authentication
-            val authResult = auth
-                .signInWithEmailAndPassword(email, password)
-                .await()
-
-            val firebaseId = authResult.user?.uid
-                ?: throw Exception("Firebase UID null")
-
-            // 2️⃣ Fetch profile from Firestore
+            val authResult = auth.signInWithEmailAndPassword(email, password).await()
+            val firebaseId = authResult.user?.uid ?: throw Exception("Firebase UID null")
             val doc = usersCollection.document(firebaseId).get().await()
-
             val user = User(
                 email = doc.getString("email") ?: "",
                 fullName = doc.getString("fullName") ?: "",
                 firebaseId = firebaseId
             )
-
-            // 3️⃣ Cache locally
             userDao.insertUser(user)
-
-            true
+            Pair(true, null)
         } catch (e: Exception) {
             Log.e("UserRepository", "SignIn failed", e)
-            false
+            Pair(false, e.message ?: "Unknown error")
         }
     }
+
 
     // 🔓 LOG OUT
     suspend fun logout() {
         auth.signOut()
         userDao.clearUser()
     }
+
+    suspend fun getCachedUser(): User? {
+        return userDao.getLoggedInUser()
+    }
+
 }
