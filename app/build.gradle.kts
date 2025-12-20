@@ -56,6 +56,8 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
     implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.navigation:navigation-compose:2.8.5")
+    implementation("com.google.firebase:firebase-auth")
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     testImplementation(libs.junit)

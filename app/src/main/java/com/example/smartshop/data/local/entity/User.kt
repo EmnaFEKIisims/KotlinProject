@@ -9,6 +9,5 @@ data class User(
     val id: Int = 0,
     val email: String,
     val fullName: String ,
-    val password: String,  // Ideally hashed in a real app
-    val firebaseId: String? = null
+    val firebaseId: String
 )
