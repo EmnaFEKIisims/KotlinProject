@@ -20,24 +20,26 @@ class ProductRepository(private val productDao: ProductDao) {
     suspend fun addProduct(product: Product) {
         if (!validateProduct(product)) return
         try {
-            // Save locally
-            val roomId = productDao.insertProduct(product)
-
-            // Save in Firebase
+            // Save in Firebase first
             val productMap = hashMapOf(
                 "name" to product.name,
                 "quantity" to product.quantity,
                 "price" to product.price,
-                "imageURL" to product.imageURL,
+                "imageURL" to product.imageURL
             )
             val docRef = collection.add(productMap).await()
 
-            // Update Room with firebaseId
-            productDao.updateProduct(product.copy(id = roomId.toInt(), firebaseId = docRef.id))
+            // Prepare product with firebaseId
+            val productWithFirebaseId = product.copy(firebaseId = docRef.id)
+
+            // Insert into Room
+            productDao.insertProduct(productWithFirebaseId)
+
         } catch (e: Exception) {
             Log.e("ProductRepository", "Error adding product", e)
         }
     }
+
 
     // Update product
     suspend fun updateProduct(product: Product) {
@@ -84,35 +86,40 @@ class ProductRepository(private val productDao: ProductDao) {
         Log.d("FIREBASE", "🔥 listenToFirebaseUpdates STARTED")
         collection.addSnapshotListener { snapshot, error ->
 
-            if (error != null) {
-                Log.e("FIREBASE", "Listener error", error)
-                return@addSnapshotListener
-            }
-
-            if (snapshot == null) {
-                Log.e("FIREBASE", "Snapshot is null")
+            if (error != null || snapshot == null) {
+                Log.e("FIREBASE", "Listener error or snapshot null", error)
                 return@addSnapshotListener
             }
 
             Log.d("FIREBASE", "Documents count = ${snapshot.documents.size}")
 
-            val products = snapshot.documents.map { doc ->
-                Product(
-                    id = 0,
-                    name = doc.getString("name") ?: "",
-                    quantity = (doc.getLong("quantity") ?: 0L).toInt(),
-                    price = doc.getDouble("price") ?: 0.0,
-                    imageURL = doc.getString("imageURL") ?: "",
-                    firebaseId = doc.id
-                )
-            }
-
             CoroutineScope(Dispatchers.IO).launch {
-                productDao.insertProducts(products)
-                Log.d("ROOM", "Inserted ${products.size} products into Room")
+                for (doc in snapshot.documents) {
+                    val firebaseId = doc.id
+                    val existingProduct = productDao.getProductByFirebaseId(firebaseId)
+
+                    val product = Product(
+                        id = existingProduct?.id ?: 0, // reuse Room id if exists
+                        name = doc.getString("name") ?: "",
+                        quantity = (doc.getLong("quantity") ?: 0L).toInt(),
+                        price = doc.getDouble("price") ?: 0.0,
+                        imageURL = doc.getString("imageURL") ?: "",
+                        firebaseId = firebaseId
+                    )
+
+                    if (existingProduct != null) {
+                        productDao.updateProduct(product)
+                    } else {
+                        productDao.insertProduct(product)
+                    }
+                }
+                Log.d("ROOM", "Firebase sync finished")
             }
         }
     }
+
+
+
 
 
     // Calculate total number of products
